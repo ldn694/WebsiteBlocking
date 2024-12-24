@@ -1,13 +1,40 @@
 const API_URL = "http://localhost:8000/todolist/api/website_block/get_urls";
 
 // Fetch blocklist and update DNR rules
+
+async function getAuthToken() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(["auth_token"], (result) => {
+            resolve(result.auth_token || "");
+        });
+    });
+}
 async function fetchAndUpdateBlocklist() {
+    console.log("Fetching blocklist...");
     try {
-        const response = await fetch(API_URL);
+        // get the authentication token from chrome local storage
+        const token = await getAuthToken();
+        if (token && token !== "") {
+            console.log("Token:", token);
+        }
+        else {
+            console.log("No token found in local storage.");
+            return;
+        }
+        const data = {
+            'authenticationToken': token
+        }
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
         if (response.ok) {
             const data = await response.json();
-            if (data.status === "success" && data.data && data.data.website_urls) {
-                const blockedWebsites = data.data.website_urls;
+            if (data.status === "success" && data.website_urls) {
+                const blockedWebsites = data.website_urls;
                 console.log("Fetched blocklist:", blockedWebsites);
 
                 // Save the blocklist to local storage for the popup
@@ -54,13 +81,50 @@ async function fetchAndUpdateBlocklist() {
             } else {
                 console.error("Unexpected API response format:", data);
             }
-        } else {
-            console.error("Failed to fetch blocklist:", response.statusText);
         }
+
     } catch (error) {
-        console.error("Error fetching blocklist:", error);
+        console.log("Failed to fetch blocklist:", error);
+        try {
+            // Clear existing rules if fetching failed
+            chrome.declarativeNetRequest.updateDynamicRules(
+                {
+                    removeRuleIds: Array.from({ length: 1000 }, (_, i) => i + 1),
+                    addRules: [],
+                },
+                () => {
+                    if (chrome.runtime.lastError) {
+                        console.error("Failed to clear DNR rules:", chrome.runtime.lastError);
+                    } else {
+                        console.log("DNR rules cleared successfully.");
+                    }
+                }
+            );
+            // Clear the blocklist and token from local storage
+            chrome.storage.local.set({ blocklist: [] }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error("Failed to clear blocklist from local storage:", chrome.runtime.lastError);
+                } else {
+                    console.log("Blocklist cleared from local storage successfully.");
+                }
+            });
+            chrome.storage.local.set({ auth_token: "" }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error("Failed to clear token from local storage:", chrome.runtime.lastError);
+                } else {
+                    console.log("Token cleared from local storage successfully.");
+                }
+            });
+        }
+        catch (error) {
+            console.error("Error clearing blocklist and token after failed fetching:", error);
+        }
     }
 }
+
+chrome.action.onClicked.addListener(() => {
+    chrome.tabs.create({ url: "popup.html" });
+});
 
 // Fetch and update rules when the service worker starts
 fetchAndUpdateBlocklist();
