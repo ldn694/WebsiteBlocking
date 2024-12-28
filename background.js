@@ -33,8 +33,8 @@ async function fetchAndUpdateBlocklist() {
         });
         if (response.ok) {
             const data = await response.json();
-            if (data.status === "success" && data.website_urls) {
-                const blockedWebsites = data.website_urls;
+            if (data.status === "success" && data.data) {
+                const blockedWebsites = data.data;
                 console.log("Fetched blocklist:", blockedWebsites);
 
                 // Save the blocklist to local storage for the popup
@@ -49,7 +49,7 @@ async function fetchAndUpdateBlocklist() {
                 // Format rules for DNR
                 const rules = blockedWebsites.map((url, index) => ({
                     id: index + 1, // Rule IDs must be unique
-                    priority: 1,
+                    priority: 180504,
                     action: {
                         type: "block",
                     },
