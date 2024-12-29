@@ -5,6 +5,13 @@ async function getAuthToken() {
         });
     });
 }
+async function getBlocklist() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(["blocklist"], (result) => {
+            resolve(result.blocklist || []);
+        });
+    });
+}
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM fully loaded and parsed');
     const signInScreen = document.getElementById('signInScreen');
@@ -12,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const signInButton = document.getElementById('signInButton');
     const errorMessage = document.getElementById('errorMessage');
     const blockList = document.getElementById('blockList');
+    const signOutButton = document.getElementById('signOutButton');
 
     // Check for auth_token
     const authToken = await getAuthToken();
@@ -37,8 +45,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Load block list
-    function loadBlockList() {
-        const blocklist = JSON.parse(localStorage.getItem('blocklist') || '[]');
+    async function loadBlockList() {
+        const blocklist = await getBlocklist();
+        console.log('Blocklist:', blocklist);
         blockList.innerHTML = blocklist.length
             ? blocklist.map(site => `<li>${site}</li>`).join('')
             : '<li>No blocked websites</li>';
@@ -60,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         const response = await fetch('http://localhost:8000/todolist/api/user/signin', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },  
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
 
@@ -84,6 +93,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } else {
             errorMessage.textContent = 'Sign in failed. Please try again.';
+        }
+
+        // remove the password from the input field
+        document.getElementById('password').value = "";
+    });
+    signOutButton.addEventListener('click', async () => {
+        console.log('Signing out...');
+        chrome.storage.local.remove('auth_token', () => {
+            if (chrome.runtime.lastError) {
+                console.error('Failed to remove token:', chrome.runtime.lastError);
+            } else {
+                console.log('Token removed');
+                displaySignInScreen();
+            }
+        });
+    });
+    // Listen for changes to the blocklist in local storage
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.blocklist) {
+            console.log('Blocklist updated:', changes.blocklist.newValue);
+            loadBlockList(); // Reload the blocklist when it changes
         }
     });
 });

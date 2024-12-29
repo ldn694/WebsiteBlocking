@@ -48,14 +48,12 @@ async function fetchAndUpdateBlocklist() {
 
                 // Format rules for DNR
                 const rules = blockedWebsites.map((url, index) => ({
-                    id: index + 1, // Rule IDs must be unique
-                    priority: 180504,
-                    action: {
-                        type: "block",
-                    },
+                    id: index + 1, // Unique rule IDs
+                    priority: 1, // Lower priority than standard rules
+                    action: { type: "block" },
                     condition: {
-                        urlFilter: `*://*.${url}/*`, // Match root domain and all subdomains
-                        resourceTypes: ["main_frame"], // Block only top-level navigation
+                        urlFilter: `||${url}/*`, // Efficiently block all schemes (http, https) and subdomains
+                        resourceTypes: ["main_frame"], // Block navigation only
                     },
                 }));
 

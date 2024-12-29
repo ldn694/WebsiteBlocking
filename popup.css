@@ -43,8 +43,14 @@ label {
 input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #ddd; /* Ensure consistent borders */
   border-radius: 4px;
+  box-sizing: border-box; /* Ensures padding doesn't affect the border width */
+}
+
+input:focus {
+  border-color: #007bff; /* Add focus style for better UX */
+  outline: none;
 }
 
 button {

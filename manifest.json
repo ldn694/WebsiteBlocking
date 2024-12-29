@@ -4,9 +4,9 @@
   "description": "Blocks websites based on a dynamically updated blocklist from a Django API.",
   "version": "1.0",
   "permissions": [
-  "declarativeNetRequest",
-  "storage",
-  "tabs"
+    "declarativeNetRequest",
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -16,11 +16,9 @@
   },
   "action": {
     "default_icon": {
-      "16": "assets/icons/icon16.png"
+      "192": "assets/icons/logo192.png",
+      "512": "assets/icons/logo512.png"
     }
-  },
-  "icons": {
-    "16": "assets/icons/icon16.png"
   },
   "declarative_net_request": {
     "rule_resources": [
