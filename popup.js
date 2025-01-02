@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'email': email,
             'password': password
         };
-        const response = await fetch('http://localhost:8000/todolist/api/user/signin', {
+        const response = await fetch('https://cs300-focustask.onrender.com/todolist/api/user/signin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),

@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000/todolist/api/website_block/get_urls";
+const API_URL = "https://cs300-focustask.onrender.com/todolist/api/website_block/get_urls";
 
 // Fetch blocklist and update DNR rules
 
